@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impossible Button Game</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 40px;
+      font-size: 40px;
+    }
+
+    p {
+      font-size: 20px;
+    }
+
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: 80vh;
+    }
+
+    #btn {
+      position: absolute;
+      padding: 20px 40px;
+      font-size: 24px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      background: lime;
+      color: black;
+      transition: 0.1s;
+    }
+
+    #fakeMsg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 50px;
+      display: none;
+      color: red;
+    }
+
+    #counter {
+      font-size: 22px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Easy Game!</h1>
+<p>Instruction: Just click the green button once.</p>
+<div id="counter">Fails: 0</div>
+
+<div id="gameArea">
+  <button id="btn">CLICK ME</button>
+  <div id="fakeMsg">TOO SLOW 😂</div>
+</div>
+
+<script>
+  const btn = document.getElementById("btn");
+  const gameArea = document.getElementById("gameArea");
+  const fakeMsg = document.getElementById("fakeMsg");
+  const counter = document.getElementById("counter");
+
+  let fails = 0;
+
+  // Random start position
+  moveButton();
+
+  // Button escapes mouse
+  document.addEventListener("mousemove", (e) => {
+    const rect = btn.getBoundingClientRect();
+
+    const dx = e.clientX - (rect.left + rect.width / 2);
+    const dy = e.clientY - (rect.top + rect.height / 2);
+
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < 120) {
+      moveButton();
+      fail();
+    }
+  });
+
+  // If somehow clicked
+  btn.addEventListener("click", () => {
+    btn.innerText = "WAIT...";
+
+    setTimeout(() => {
+      alert("Connection lost.");
+      moveButton();
+      btn.innerText = "CLICK ME";
+      fail();
+    }, 300);
+  });
+
+  // Random annoying popups
+  setInterval(() => {
+    if (Math.random() < 0.3) {
+      alert("Are you sure you know how to click?");
+    }
+  }, 8000);
+
+  function moveButton() {
+    const x = Math.random() * (window.innerWidth - 200);
+    const y = Math.random() * (window.innerHeight - 200);
+
+    btn.style.left = x + "px";
+    btn.style.top = y + "px";
+  }
+
+  function fail() {
+    fails++;
+    counter.innerText = "Fails: " + fails;
+
+    fakeMsg.style.display = "block";
+
+    setTimeout(() => {
+      fakeMsg.style.display = "none";
+    }, 500);
+
+    // Make button smaller over time
+    const currentSize = parseFloat(window.getComputedStyle(btn).fontSize);
+
+    if (currentSize > 8) {
+      btn.style.fontSize = (currentSize - 1) + "px";
+      btn.style.padding = "15px 25px";
+    }
+
+    // Occasionally teleport instantly
+    if (fails % 5 === 0) {
+      setInterval(moveButton, 100);
+    }
+  }
+</script>
+
+</body>
+</html>
