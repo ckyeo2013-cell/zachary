@@ -3,119 +3,144 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Totally Easy Game</title>
+<title>Definitely Easy Game</title>
 
 <style>
-    body {
-        margin: 0;
-        overflow: hidden;
-        font-family: Arial, sans-serif;
-        background: black;
-        color: white;
-        user-select: none;
-        cursor: crosshair;
-    }
 
-    h1 {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 50px;
-    }
+body{
+    margin:0;
+    overflow:hidden;
+    background:black;
+    color:white;
+    font-family:Arial, sans-serif;
+    user-select:none;
+    transition:0.1s;
+}
 
-    #instruction {
-        text-align: center;
-        font-size: 22px;
-    }
+h1{
+    text-align:center;
+    margin-top:20px;
+    font-size:55px;
+}
 
-    #fails {
-        text-align: center;
-        margin-top: 10px;
-        font-size: 25px;
-        color: red;
-    }
+#instructions{
+    text-align:center;
+    font-size:22px;
+}
 
-    #gameArea {
-        width: 100vw;
-        height: 85vh;
-        position: relative;
-    }
+#fails{
+    text-align:center;
+    font-size:28px;
+    margin-top:10px;
+    color:red;
+}
 
-    #button {
-        position: absolute;
-        padding: 20px 40px;
-        font-size: 28px;
-        border: none;
-        border-radius: 15px;
-        background: lime;
-        color: black;
-        cursor: pointer;
-        transition: 0.05s;
-        box-shadow: 0 0 20px lime;
-    }
+#gameArea{
+    width:100vw;
+    height:85vh;
+    position:relative;
+}
 
-    #fakeWin {
-        position: absolute;
-        top: 40%;
-        width: 100%;
-        text-align: center;
-        font-size: 80px;
-        color: lime;
-        display: none;
-    }
+#button{
+    position:absolute;
+    padding:20px 40px;
+    font-size:28px;
+    border:none;
+    border-radius:15px;
+    background:lime;
+    color:black;
+    cursor:pointer;
+    transition:0.05s;
+    box-shadow:0 0 25px lime;
+}
 
-    #jumpscare {
-        position: fixed;
-        inset: 0;
-        background: black;
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        flex-direction: column;
-    }
+.popup{
+    position:absolute;
+    background:white;
+    color:black;
+    padding:15px;
+    border-radius:10px;
+    font-size:20px;
+    z-index:5;
+}
 
-    #jumpscare img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+#fakeWin{
+    position:absolute;
+    top:40%;
+    width:100%;
+    text-align:center;
+    font-size:90px;
+    display:none;
+    color:lime;
+}
 
-    #laughText {
-        position: absolute;
-        color: red;
-        font-size: 100px;
-        font-weight: bold;
-        text-shadow: 0 0 20px red;
-        animation: shake 0.1s infinite;
-    }
+#jumpscare{
+    position:fixed;
+    inset:0;
+    background:black;
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+    flex-direction:column;
+}
 
-    @keyframes shake {
-        0% { transform: translate(5px, 5px); }
-        25% { transform: translate(-5px, -5px); }
-        50% { transform: translate(5px, -5px); }
-        75% { transform: translate(-5px, 5px); }
-        100% { transform: translate(5px, 5px); }
-    }
+#jumpscare img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
 
-    .popup {
-        position: absolute;
-        background: white;
-        color: black;
-        padding: 15px;
-        border: 3px solid black;
-        border-radius: 10px;
-        font-size: 20px;
-        z-index: 5;
-    }
+#laugh{
+    position:absolute;
+    font-size:100px;
+    color:red;
+    font-weight:bold;
+    animation:shake 0.08s infinite;
+}
+
+#victory{
+    position:fixed;
+    inset:0;
+    background:black;
+    display:none;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    z-index:10000;
+}
+
+#victory h2{
+    font-size:100px;
+    color:lime;
+}
+
+#victory p{
+    font-size:30px;
+}
+
+.flash{
+    background:white !important;
+    color:black !important;
+}
+
+@keyframes shake{
+    0%{transform:translate(5px,5px);}
+    25%{transform:translate(-5px,-5px);}
+    50%{transform:translate(5px,-5px);}
+    75%{transform:translate(-5px,5px);}
+    100%{transform:translate(5px,5px);}
+}
 
 </style>
 </head>
 
 <body>
 
-<h1>SUPER EASY GAME</h1>
-<div id="instruction">
-    Just click the green button ONE time.
+<h1>THE WORLD'S EASIEST GAME</h1>
+
+<div id="instructions">
+    Just click the green button once.
 </div>
 
 <div id="fails">Fails: 0</div>
@@ -127,69 +152,177 @@
 
 <div id="jumpscare">
     <img src="https://i.imgur.com/8Q2QK0G.jpeg">
-    <div id="laughText">HAHAHAHA</div>
+    <div id="laugh">HAHAHAHA</div>
+</div>
+
+<div id="victory">
+    <h2>YOU WIN!</h2>
+    <p>You survived the rage game.</p>
 </div>
 
 <audio id="scream">
-    <source src="https://www.myinstants.com/media/sounds/movie_1.mp3" type="audio/mp3">
+    <source src="https://www.myinstants.com/media/sounds/movie_1.mp3">
 </audio>
 
 <script>
 
 const button = document.getElementById("button");
-const gameArea = document.getElementById("gameArea");
-const fakeWin = document.getElementById("fakeWin");
 const failsText = document.getElementById("fails");
+const fakeWin = document.getElementById("fakeWin");
 const jumpscare = document.getElementById("jumpscare");
 const scream = document.getElementById("scream");
+const victory = document.getElementById("victory");
 
 let fails = 0;
-let impossibleMode = false;
+let canActuallyWin = false;
+let teleportSpam = false;
 
 moveButton();
 
-// BUTTON RUNS AWAY
-document.addEventListener("mousemove", (e) => {
+
+// BUTTON ESCAPES
+document.addEventListener("mousemove",(e)=>{
+
+    if(canActuallyWin) return;
 
     const rect = button.getBoundingClientRect();
 
-    const bx = rect.left + rect.width / 2;
-    const by = rect.top + rect.height / 2;
+    const bx = rect.left + rect.width/2;
+    const by = rect.top + rect.height/2;
 
     const dx = e.clientX - bx;
     const dy = e.clientY - by;
 
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    const distance = Math.sqrt(dx*dx + dy*dy);
 
-    if (distance < 150) {
+    if(distance < 140){
         moveButton();
         fail();
     }
+
 });
 
-// IF BUTTON CLICKED
-button.addEventListener("click", () => {
 
+// CLICK EVENT
+button.addEventListener("click",()=>{
+
+    // REAL WIN CONDITION
+    if(canActuallyWin){
+
+        victory.style.display = "flex";
+
+        document.body.style.animation = "none";
+
+        return;
+    }
+
+    // FAKE WIN + JUMPSCARE
     fakeWin.style.display = "block";
 
-    setTimeout(() => {
+    setTimeout(()=>{
+
         fakeWin.style.display = "none";
 
         jumpscare.style.display = "flex";
+
         scream.play();
 
-        // SHAKE SCREEN
-        document.body.style.animation = "shake 0.1s infinite";
+        document.body.style.animation = "shake 0.08s infinite";
 
-        setTimeout(() => {
-            alert("YOU REALLY THOUGHT YOU WON 💀");
-            location.reload();
-        }, 3000);
+        flashScreen();
 
-    }, 500);
+        setTimeout(()=>{
+
+            jumpscare.style.display = "none";
+
+            alert("NOPE 😂");
+
+            moveButton();
+
+        },2500);
+
+    },500);
+
 });
 
-function moveButton() {
+
+// FAIL FUNCTION
+function fail(){
+
+    fails++;
+
+    failsText.innerText = "Fails: " + fails;
+
+    // SMALLER BUTTON
+    let size = parseFloat(window.getComputedStyle(button).fontSize);
+
+    if(size > 10){
+        button.style.fontSize = (size - 0.5) + "px";
+    }
+
+    // RANDOM FLASHES
+    if(Math.random() < 0.25){
+        flashScreen();
+    }
+
+    // POPUPS
+    if(fails % 6 === 0){
+        createPopup("Skill issue detected.");
+    }
+
+    if(fails % 12 === 0){
+        createPopup("Mouse disconnected.");
+    }
+
+    if(fails % 20 === 0){
+        createPopup("Bro is struggling 💀");
+    }
+
+    // SCREEN ROTATE
+    if(fails === 25){
+        document.body.style.transform = "rotate(180deg)";
+    }
+
+    // INVISIBLE BUTTON
+    if(fails === 35){
+        button.style.opacity = "0.2";
+    }
+
+    // TELEPORT MODE
+    if(fails === 45 && !teleportSpam){
+
+        teleportSpam = true;
+
+        setInterval(()=>{
+            if(!canActuallyWin){
+                moveButton();
+            }
+        },120);
+    }
+
+    // LET PLAYER ACTUALLY WIN
+    if(fails >= 70){
+
+        canActuallyWin = true;
+
+        button.style.opacity = "1";
+
+        button.style.fontSize = "35px";
+
+        button.style.padding = "25px 50px";
+
+        button.innerText = "FINAL CLICK";
+
+        clearEffects();
+
+        createPopup("Okay fine. You can win now.");
+    }
+
+}
+
+
+// MOVE BUTTON
+function moveButton(){
 
     const x = Math.random() * (window.innerWidth - 250);
     const y = Math.random() * (window.innerHeight - 250);
@@ -198,103 +331,80 @@ function moveButton() {
     button.style.top = y + "px";
 }
 
-// FAIL SYSTEM
-function fail() {
 
-    fails++;
-    failsText.innerText = "Fails: " + fails;
-
-    // BUTTON SHRINKS
-    let currentSize = parseFloat(window.getComputedStyle(button).fontSize);
-
-    if (currentSize > 8) {
-        button.style.fontSize = (currentSize - 0.5) + "px";
-    }
-
-    // RANDOM FAKE ERROR POPUPS
-    if (fails % 7 === 0) {
-        createPopup("Skill issue detected.");
-    }
-
-    if (fails % 13 === 0) {
-        createPopup("Mouse calibration failed.");
-    }
-
-    if (fails % 20 === 0) {
-        createPopup("Button escaped.");
-    }
-
-    // SCREEN FLIPS
-    if (fails === 25) {
-        document.body.style.transform = "rotate(180deg)";
-    }
-
-    // INVISIBLE BUTTON
-    if (fails === 35) {
-        button.style.opacity = "0.2";
-    }
-
-    // BUTTON TELEPORT SPAM
-    if (fails === 45 && !impossibleMode) {
-
-        impossibleMode = true;
-
-        setInterval(() => {
-            moveButton();
-        }, 120);
-    }
-
-    // FAKE VIRUS MODE
-    if (fails === 60) {
-
-        for (let i = 0; i < 20; i++) {
-            createPopup("VIRUS DETECTED");
-        }
-    }
-}
-
-// RANDOM POPUPS
-function createPopup(text) {
+// POPUPS
+function createPopup(text){
 
     const popup = document.createElement("div");
 
     popup.classList.add("popup");
+
     popup.innerText = text;
 
-    popup.style.left = Math.random() * (window.innerWidth - 200) + "px";
-    popup.style.top = Math.random() * (window.innerHeight - 100) + "px";
+    popup.style.left = Math.random() * (window.innerWidth - 250) + "px";
+    popup.style.top = Math.random() * (window.innerHeight - 150) + "px";
 
     document.body.appendChild(popup);
 
-    setTimeout(() => {
+    setTimeout(()=>{
         popup.remove();
-    }, 2000);
+    },2000);
 }
 
-// RANDOM TROLL ALERTS
-setInterval(() => {
 
-    const messages = [
-        "You almost had it.",
+// FLASH EFFECT
+function flashScreen(){
+
+    document.body.classList.add("flash");
+
+    setTimeout(()=>{
+        document.body.classList.remove("flash");
+    },100);
+
+}
+
+
+// CLEAR EFFECTS WHEN WINNING ENABLED
+function clearEffects(){
+
+    document.body.style.transform = "rotate(0deg)";
+    document.body.style.animation = "none";
+
+}
+
+
+// RANDOM TROLL ALERTS
+setInterval(()=>{
+
+    const msgs = [
         "That was embarrassing.",
-        "Even a grandma clicks faster.",
-        "Button says no.",
+        "You almost had it.",
+        "Even my grandma clicks faster.",
+        "Button escaped.",
         "Try harder.",
-        "Bro is struggling 💀"
+        "The button fears you."
     ];
 
-    const msg = messages[Math.floor(Math.random() * messages.length)];
+    if(Math.random() < 0.35 && !canActuallyWin){
 
-    if (Math.random() < 0.4) {
+        const msg = msgs[Math.floor(Math.random()*msgs.length)];
+
         alert(msg);
     }
 
-}, 12000);
+},12000);
+
 
 // WINDOW RESIZE TROLL
-window.addEventListener("resize", () => {
-    moveButton();
-    alert("Nice try resizing.");
+window.addEventListener("resize",()=>{
+
+    if(!canActuallyWin){
+
+        moveButton();
+
+        alert("Nice try resizing.");
+    }
+
 });
 
 </script>
