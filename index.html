@@ -1,593 +1,215 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Impossible Game</title>
+<title>Mini Minecraft</title>
 
 <style>
-
-body{
-    margin:0;
-    overflow:hidden;
-    background:black;
-    color:white;
-    font-family:Arial;
-    user-select:none;
-    transition:0.08s;
+body {
+    margin: 0;
+    overflow: hidden;
+    background: black;
 }
 
-h1{
-    text-align:center;
-    margin-top:15px;
-    font-size:60px;
-    text-shadow:0 0 20px red;
+#crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+    margin-top: -5px;
+    color: white;
+    font-size: 20px;
+    font-family: Arial;
+    pointer-events: none;
 }
-
-#info{
-    text-align:center;
-    font-size:24px;
-}
-
-#fails{
-    text-align:center;
-    color:red;
-    font-size:30px;
-    margin-top:10px;
-}
-
-#game{
-    width:100vw;
-    height:85vh;
-    position:relative;
-    overflow:hidden;
-}
-
-#btn{
-    position:absolute;
-    padding:20px 40px;
-    border:none;
-    border-radius:20px;
-    background:lime;
-    color:black;
-    font-size:32px;
-    cursor:pointer;
-    box-shadow:0 0 30px lime;
-    z-index:10;
-}
-
-.clone{
-    position:absolute;
-    padding:20px 40px;
-    border:none;
-    border-radius:20px;
-    background:red;
-    color:white;
-    font-size:30px;
-    cursor:pointer;
-}
-
-.popup{
-    position:absolute;
-    background:white;
-    color:black;
-    padding:12px;
-    border-radius:10px;
-    font-size:20px;
-    z-index:999;
-}
-
-#jumpscare{
-    position:fixed;
-    inset:0;
-    background:black;
-    display:none;
-    justify-content:center;
-    align-items:center;
-    z-index:10000;
-}
-
-#jumpscare img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-}
-
-#laugh{
-    position:absolute;
-    color:red;
-    font-size:120px;
-    animation:shake 0.05s infinite;
-}
-
-#victory{
-    position:fixed;
-    inset:0;
-    background:black;
-    display:none;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
-    z-index:99999;
-}
-
-#victory h2{
-    color:lime;
-    font-size:110px;
-}
-
-#holdBar{
-    position:fixed;
-    bottom:30px;
-    left:50%;
-    transform:translateX(-50%);
-    width:400px;
-    height:35px;
-    border:3px solid white;
-    display:none;
-}
-
-#holdFill{
-    width:0%;
-    height:100%;
-    background:lime;
-}
-
-#blackout{
-    position:fixed;
-    inset:0;
-    background:black;
-    display:none;
-    z-index:5000;
-}
-
-.obstacle{
-    position:absolute;
-    width:120px;
-    height:120px;
-    background:red;
-    border-radius:50%;
-    animation:spin 2s linear infinite;
-}
-
-@keyframes spin{
-    from{transform:rotate(0deg);}
-    to{transform:rotate(360deg);}
-}
-
-@keyframes shake{
-    0%{transform:translate(5px,5px);}
-    25%{transform:translate(-5px,-5px);}
-    50%{transform:translate(5px,-5px);}
-    75%{transform:translate(-5px,5px);}
-    100%{transform:translate(5px,5px);}
-}
-
-.flash{
-    background:white !important;
-}
-
 </style>
 </head>
 
 <body>
 
-<h1>THE WORLD'S EASIEST GAME</h1>
+<div id="crosshair">+</div>
 
-<div id="info">
-    Just click the green button once.
-</div>
-
-<div id="fails">Fails: 0</div>
-
-<div id="game">
-    <button id="btn">CLICK ME</button>
-</div>
-
-<div id="holdBar">
-    <div id="holdFill"></div>
-</div>
-
-<div id="blackout"></div>
-
-<div id="jumpscare">
-    <img src="https://i.imgur.com/8Q2QK0G.jpeg">
-    <div id="laugh">HAHAHAHA</div>
-</div>
-
-<div id="victory">
-    <h2>YOU WIN.</h2>
-    <p>You wasted your life successfully.</p>
-</div>
-
-<audio id="scream">
-    <source src="https://www.myinstants.com/media/sounds/movie_1.mp3">
-</audio>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 
 <script>
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
 
-const btn = document.getElementById("btn");
-const failsText = document.getElementById("fails");
-const jumpscare = document.getElementById("jumpscare");
-const scream = document.getElementById("scream");
-const holdBar = document.getElementById("holdBar");
-const holdFill = document.getElementById("holdFill");
-const victory = document.getElementById("victory");
-const blackout = document.getElementById("blackout");
+const camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth/window.innerHeight,
+    0.1,
+    1000
+);
 
-let fails = 0;
-let canWin = false;
-let reverseMode = false;
-let holdAmount = 0;
-let holding = false;
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-moveBtn();
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(10, 20, 10);
+scene.add(light);
 
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-// BUTTON RUNS
-document.addEventListener("mousemove",(e)=>{
+const blocks = [];
 
-    if(canWin) return;
+function createBlock(x, y, z, color=0x55aa55) {
+    const geometry = new THREE.BoxGeometry(1,1,1);
+    const material = new THREE.MeshLambertMaterial({color});
+    const cube = new THREE.Mesh(geometry, material);
 
-    const rect = btn.getBoundingClientRect();
+    cube.position.set(x,y,z);
 
-    const bx = rect.left + rect.width/2;
-    const by = rect.top + rect.height/2;
+    scene.add(cube);
+    blocks.push(cube);
 
-    const dx = e.clientX - bx;
-    const dy = e.clientY - by;
+    return cube;
+}
 
-    const distance = Math.sqrt(dx*dx + dy*dy);
+for(let x=-10; x<=10; x++) {
+    for(let z=-10; z<=10; z++) {
+        createBlock(x,0,z,0x55aa55);
 
-    if(distance < 180){
-
-        moveBtn();
-
-        fail();
-
+        if(Math.random() > 0.8){
+            createBlock(x,1,z,0x228822);
+        }
     }
+}
 
+camera.position.set(0,3,5);
+
+const keys = {};
+
+document.addEventListener("keydown", e=>{
+    keys[e.key.toLowerCase()] = true;
 });
 
-
-// CLICK
-let lastClick = 0;
-
-btn.addEventListener("click",()=>{
-
-    let now = Date.now();
-
-    if(now - lastClick < 20){
-
-        explodeCheater();
-
-        return;
-
-    }
-
-    lastClick = now;
-
-    // FAKE WINS
-    if(!canWin){
-
-        fakeWin();
-
-    }
-
+document.addEventListener("keyup", e=>{
+    keys[e.key.toLowerCase()] = false;
 });
 
+let pitch = 0;
+let yaw = 0;
 
-// HOLD TO WIN
-btn.addEventListener("mousedown",()=>{
-
-    if(!canWin) return;
-
-    holding = true;
-
+document.body.addEventListener("click", ()=>{
+    document.body.requestPointerLock();
 });
 
-document.addEventListener("mouseup",()=>{
+document.addEventListener("mousemove", e=>{
+    if(document.pointerLockElement === document.body){
 
-    holding = false;
+        yaw -= e.movementX * 0.002;
+        pitch -= e.movementY * 0.002;
 
+        pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch));
+
+        camera.rotation.order = "YXZ";
+        camera.rotation.y = yaw;
+        camera.rotation.x = pitch;
+    }
 });
 
+const raycaster = new THREE.Raycaster();
 
-setInterval(()=>{
+document.addEventListener("mousedown", e=>{
 
-    if(canWin && holding){
+    raycaster.setFromCamera(new THREE.Vector2(0,0), camera);
 
-        holdAmount += 2;
+    const intersects = raycaster.intersectObjects(blocks);
 
-        holdFill.style.width = holdAmount + "%";
+    if(intersects.length > 0){
 
-        // BUTTON STILL MOVES WHILE HOLDING
-        moveBtn();
+        const hit = intersects[0];
 
-        if(holdAmount >= 100){
+        if(e.button === 0){
 
-            victory.style.display = "flex";
+            scene.remove(hit.object);
 
+            const index = blocks.indexOf(hit.object);
+
+            if(index > -1){
+                blocks.splice(index,1);
+            }
+
+        } else if(e.button === 2){
+
+            const normal = hit.face.normal;
+
+            const pos = hit.object.position.clone().add(normal);
+
+            createBlock(pos.x,pos.y,pos.z,0x996633);
         }
-
     }
-    else{
+});
 
-        holdAmount -= 4;
+document.addEventListener("contextmenu", e=>e.preventDefault());
 
-        if(holdAmount < 0) holdAmount = 0;
+let velocityY = 0;
+let onGround = false;
 
-        holdFill.style.width = holdAmount + "%";
+function animate(){
 
-    }
+    requestAnimationFrame(animate);
 
-},100);
+    const speed = 0.1;
 
+    const forward = new THREE.Vector3(
+        Math.sin(yaw),
+        0,
+        Math.cos(yaw)
+    );
 
-// FAIL
-function fail(){
+    const right = new THREE.Vector3(
+        Math.cos(yaw),
+        0,
+        -Math.sin(yaw)
+    );
 
-    fails++;
-
-    failsText.innerText = "Fails: " + fails;
-
-    // SHRINK BUTTON
-    let size = parseFloat(getComputedStyle(btn).fontSize);
-
-    if(size > 8){
-
-        btn.style.fontSize = (size - 0.4) + "px";
-
-    }
-
-    // RANDOM FLASH
-    if(Math.random() < 0.3){
-
-        document.body.classList.add("flash");
-
-        setTimeout(()=>{
-            document.body.classList.remove("flash");
-        },100);
-
+    if(keys["w"]){
+        camera.position.add(forward.clone().multiplyScalar(-speed));
     }
 
-    // BLACKOUT
-    if(Math.random() < 0.08){
-
-        blackout.style.display = "block";
-
-        setTimeout(()=>{
-            blackout.style.display = "none";
-        },1000);
-
+    if(keys["s"]){
+        camera.position.add(forward.clone().multiplyScalar(speed));
     }
 
-    // CURSOR DISAPPEARS
-    if(fails > 30){
-
-        document.body.style.cursor = "none";
-
+    if(keys["a"]){
+        camera.position.add(right.clone().multiplyScalar(-speed));
     }
 
-    // REVERSE MODE
-    if(fails === 40){
-
-        reverseMode = true;
-
-        popup("MOUSE CONTROLS REVERSED");
-
+    if(keys["d"]){
+        camera.position.add(right.clone().multiplyScalar(speed));
     }
 
-    // SPAWN FAKE BUTTONS
-    if(fails === 50){
+    velocityY -= 0.01;
+    camera.position.y += velocityY;
 
-        for(let i=0;i<8;i++){
-
-            spawnClone();
-
-        }
-
+    if(camera.position.y < 2){
+        camera.position.y = 2;
+        velocityY = 0;
+        onGround = true;
     }
 
-    // MOVING OBSTACLES
-    if(fails === 65){
-
-        for(let i=0;i<5;i++){
-
-            createObstacle();
-
-        }
-
+    if(keys[" "] && onGround){
+        velocityY = 0.2;
+        onGround = false;
     }
 
-    // REAL WIN PHASE
-    if(fails >= 100){
-
-        canWin = true;
-
-        btn.innerText = "HOLD TO WIN";
-
-        btn.style.fontSize = "40px";
-
-        btn.style.opacity = "1";
-
-        holdBar.style.display = "block";
-
-        popup("Okay. Final phase.");
-
-    }
-
+    renderer.render(scene, camera);
 }
 
+animate();
 
-// MOVE BUTTON
-function moveBtn(){
+window.addEventListener("resize", ()=>{
 
-    let x = Math.random() * (window.innerWidth - 250);
-    let y = Math.random() * (window.innerHeight - 250);
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
 
-    if(reverseMode){
-
-        x = window.innerWidth - x - 200;
-        y = window.innerHeight - y - 100;
-
-    }
-
-    btn.style.left = x + "px";
-    btn.style.top = y + "px";
-
-}
-
-
-// POPUPS
-function popup(text){
-
-    const p = document.createElement("div");
-
-    p.className = "popup";
-
-    p.innerText = text;
-
-    p.style.left =
-    Math.random() * (window.innerWidth - 300) + "px";
-
-    p.style.top =
-    Math.random() * (window.innerHeight - 200) + "px";
-
-    document.body.appendChild(p);
-
-    setTimeout(()=>{
-        p.remove();
-    },2000);
-
-}
-
-
-// JUMPSCARE
-function fakeWin(){
-
-    jumpscare.style.display = "flex";
-
-    scream.play();
-
-    document.body.style.animation = "shake 0.04s infinite";
-
-    setTimeout(()=>{
-
-        jumpscare.style.display = "none";
-
-        document.body.style.animation = "none";
-
-        popup("NOPE 😂");
-
-        moveBtn();
-
-    },2500);
-
-}
-
-
-// CLONES
-function spawnClone(){
-
-    const clone = document.createElement("button");
-
-    clone.className = "clone";
-
-    clone.innerText = "CLICK ME";
-
-    clone.style.left =
-    Math.random() * (window.innerWidth - 300) + "px";
-
-    clone.style.top =
-    Math.random() * (window.innerHeight - 200) + "px";
-
-    clone.onclick = ()=>{
-
-        alert("WRONG BUTTON 💀");
-
-        fail();
-
-    };
-
-    document.body.appendChild(clone);
-
-}
-
-
-// CHEATER DETECTION
-function explodeCheater(){
-
-    for(let i=0;i<30;i++){
-
-        popup("CHEATER");
-
-    }
-
-    alert("AUTOCLICKER DETECTED 🤖");
-
-}
-
-
-// OBSTACLES
-function createObstacle(){
-
-    const obs = document.createElement("div");
-
-    obs.className = "obstacle";
-
-    obs.style.left =
-    Math.random() * (window.innerWidth - 150) + "px";
-
-    obs.style.top =
-    Math.random() * (window.innerHeight - 150) + "px";
-
-    document.body.appendChild(obs);
-
-    let dx = Math.random()*8-4;
-    let dy = Math.random()*8-4;
-
-    setInterval(()=>{
-
-        let x = obs.offsetLeft + dx;
-        let y = obs.offsetTop + dy;
-
-        if(x < 0 || x > window.innerWidth-120) dx *= -1;
-        if(y < 0 || y > window.innerHeight-120) dy *= -1;
-
-        obs.style.left = x + "px";
-        obs.style.top = y + "px";
-
-    },30);
-
-}
-
-
-// RANDOM TROLLS
-setInterval(()=>{
-
-    if(!canWin){
-
-        const msgs = [
-
-            "You almost had it.",
-            "Skill issue.",
-            "The button fears you.",
-            "Bro is LOCKED IN 💀",
-            "Even grandma clicks faster."
-
-        ];
-
-        if(Math.random() < 0.4){
-
-            alert(msgs[Math.floor(Math.random()*msgs.length)]);
-
-        }
-
-    }
-
-},14000);
-
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
 </script>
 
 </body>
