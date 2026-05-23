@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Definitely Easy Game</title>
+<title>Impossible Game</title>
 
 <style>
 
@@ -12,66 +12,69 @@ body{
     overflow:hidden;
     background:black;
     color:white;
-    font-family:Arial, sans-serif;
+    font-family:Arial;
     user-select:none;
-    transition:0.1s;
+    transition:0.08s;
 }
 
 h1{
     text-align:center;
-    margin-top:20px;
-    font-size:55px;
+    margin-top:15px;
+    font-size:60px;
+    text-shadow:0 0 20px red;
 }
 
-#instructions{
+#info{
     text-align:center;
-    font-size:22px;
+    font-size:24px;
 }
 
 #fails{
     text-align:center;
-    font-size:28px;
-    margin-top:10px;
     color:red;
+    font-size:30px;
+    margin-top:10px;
 }
 
-#gameArea{
+#game{
     width:100vw;
     height:85vh;
     position:relative;
+    overflow:hidden;
 }
 
-#button{
+#btn{
     position:absolute;
     padding:20px 40px;
-    font-size:28px;
     border:none;
-    border-radius:15px;
+    border-radius:20px;
     background:lime;
     color:black;
+    font-size:32px;
     cursor:pointer;
-    transition:0.05s;
-    box-shadow:0 0 25px lime;
+    box-shadow:0 0 30px lime;
+    z-index:10;
+}
+
+.clone{
+    position:absolute;
+    padding:20px 40px;
+    border:none;
+    border-radius:20px;
+    background:red;
+    color:white;
+    font-size:30px;
+    cursor:pointer;
 }
 
 .popup{
     position:absolute;
     background:white;
     color:black;
-    padding:15px;
+    padding:12px;
     border-radius:10px;
     font-size:20px;
-    z-index:5;
-}
-
-#fakeWin{
-    position:absolute;
-    top:40%;
-    width:100%;
-    text-align:center;
-    font-size:90px;
-    display:none;
-    color:lime;
+    z-index:999;
 }
 
 #jumpscare{
@@ -81,8 +84,7 @@ h1{
     display:none;
     justify-content:center;
     align-items:center;
-    z-index:9999;
-    flex-direction:column;
+    z-index:10000;
 }
 
 #jumpscare img{
@@ -93,10 +95,9 @@ h1{
 
 #laugh{
     position:absolute;
-    font-size:100px;
     color:red;
-    font-weight:bold;
-    animation:shake 0.08s infinite;
+    font-size:120px;
+    animation:shake 0.05s infinite;
 }
 
 #victory{
@@ -107,21 +108,51 @@ h1{
     justify-content:center;
     align-items:center;
     flex-direction:column;
-    z-index:10000;
+    z-index:99999;
 }
 
 #victory h2{
-    font-size:100px;
     color:lime;
+    font-size:110px;
 }
 
-#victory p{
-    font-size:30px;
+#holdBar{
+    position:fixed;
+    bottom:30px;
+    left:50%;
+    transform:translateX(-50%);
+    width:400px;
+    height:35px;
+    border:3px solid white;
+    display:none;
 }
 
-.flash{
-    background:white !important;
-    color:black !important;
+#holdFill{
+    width:0%;
+    height:100%;
+    background:lime;
+}
+
+#blackout{
+    position:fixed;
+    inset:0;
+    background:black;
+    display:none;
+    z-index:5000;
+}
+
+.obstacle{
+    position:absolute;
+    width:120px;
+    height:120px;
+    background:red;
+    border-radius:50%;
+    animation:spin 2s linear infinite;
+}
+
+@keyframes spin{
+    from{transform:rotate(0deg);}
+    to{transform:rotate(360deg);}
 }
 
 @keyframes shake{
@@ -132,6 +163,10 @@ h1{
     100%{transform:translate(5px,5px);}
 }
 
+.flash{
+    background:white !important;
+}
+
 </style>
 </head>
 
@@ -139,16 +174,21 @@ h1{
 
 <h1>THE WORLD'S EASIEST GAME</h1>
 
-<div id="instructions">
+<div id="info">
     Just click the green button once.
 </div>
 
 <div id="fails">Fails: 0</div>
 
-<div id="gameArea">
-    <button id="button">CLICK ME</button>
-    <div id="fakeWin">YOU DID IT!</div>
+<div id="game">
+    <button id="btn">CLICK ME</button>
 </div>
+
+<div id="holdBar">
+    <div id="holdFill"></div>
+</div>
+
+<div id="blackout"></div>
 
 <div id="jumpscare">
     <img src="https://i.imgur.com/8Q2QK0G.jpeg">
@@ -156,8 +196,8 @@ h1{
 </div>
 
 <div id="victory">
-    <h2>YOU WIN!</h2>
-    <p>You survived the rage game.</p>
+    <h2>YOU WIN.</h2>
+    <p>You wasted your life successfully.</p>
 </div>
 
 <audio id="scream">
@@ -166,26 +206,30 @@ h1{
 
 <script>
 
-const button = document.getElementById("button");
+const btn = document.getElementById("btn");
 const failsText = document.getElementById("fails");
-const fakeWin = document.getElementById("fakeWin");
 const jumpscare = document.getElementById("jumpscare");
 const scream = document.getElementById("scream");
+const holdBar = document.getElementById("holdBar");
+const holdFill = document.getElementById("holdFill");
 const victory = document.getElementById("victory");
+const blackout = document.getElementById("blackout");
 
 let fails = 0;
-let canActuallyWin = false;
-let teleportSpam = false;
+let canWin = false;
+let reverseMode = false;
+let holdAmount = 0;
+let holding = false;
 
-moveButton();
+moveBtn();
 
 
-// BUTTON ESCAPES
+// BUTTON RUNS
 document.addEventListener("mousemove",(e)=>{
 
-    if(canActuallyWin) return;
+    if(canWin) return;
 
-    const rect = button.getBoundingClientRect();
+    const rect = btn.getBoundingClientRect();
 
     const bx = rect.left + rect.width/2;
     const by = rect.top + rect.height/2;
@@ -195,217 +239,354 @@ document.addEventListener("mousemove",(e)=>{
 
     const distance = Math.sqrt(dx*dx + dy*dy);
 
-    if(distance < 140){
-        moveButton();
+    if(distance < 180){
+
+        moveBtn();
+
         fail();
+
     }
 
 });
 
 
-// CLICK EVENT
-button.addEventListener("click",()=>{
+// CLICK
+let lastClick = 0;
 
-    // REAL WIN CONDITION
-    if(canActuallyWin){
+btn.addEventListener("click",()=>{
 
-        victory.style.display = "flex";
+    let now = Date.now();
 
-        document.body.style.animation = "none";
+    if(now - lastClick < 20){
+
+        explodeCheater();
 
         return;
+
     }
 
-    // FAKE WIN + JUMPSCARE
-    fakeWin.style.display = "block";
+    lastClick = now;
 
-    setTimeout(()=>{
+    // FAKE WINS
+    if(!canWin){
 
-        fakeWin.style.display = "none";
+        fakeWin();
 
-        jumpscare.style.display = "flex";
-
-        scream.play();
-
-        document.body.style.animation = "shake 0.08s infinite";
-
-        flashScreen();
-
-        setTimeout(()=>{
-
-            jumpscare.style.display = "none";
-
-            alert("NOPE 😂");
-
-            moveButton();
-
-        },2500);
-
-    },500);
+    }
 
 });
 
 
-// FAIL FUNCTION
+// HOLD TO WIN
+btn.addEventListener("mousedown",()=>{
+
+    if(!canWin) return;
+
+    holding = true;
+
+});
+
+document.addEventListener("mouseup",()=>{
+
+    holding = false;
+
+});
+
+
+setInterval(()=>{
+
+    if(canWin && holding){
+
+        holdAmount += 2;
+
+        holdFill.style.width = holdAmount + "%";
+
+        // BUTTON STILL MOVES WHILE HOLDING
+        moveBtn();
+
+        if(holdAmount >= 100){
+
+            victory.style.display = "flex";
+
+        }
+
+    }
+    else{
+
+        holdAmount -= 4;
+
+        if(holdAmount < 0) holdAmount = 0;
+
+        holdFill.style.width = holdAmount + "%";
+
+    }
+
+},100);
+
+
+// FAIL
 function fail(){
 
     fails++;
 
     failsText.innerText = "Fails: " + fails;
 
-    // SMALLER BUTTON
-    let size = parseFloat(window.getComputedStyle(button).fontSize);
+    // SHRINK BUTTON
+    let size = parseFloat(getComputedStyle(btn).fontSize);
 
-    if(size > 10){
-        button.style.fontSize = (size - 0.5) + "px";
+    if(size > 8){
+
+        btn.style.fontSize = (size - 0.4) + "px";
+
     }
 
-    // RANDOM FLASHES
-    if(Math.random() < 0.25){
-        flashScreen();
+    // RANDOM FLASH
+    if(Math.random() < 0.3){
+
+        document.body.classList.add("flash");
+
+        setTimeout(()=>{
+            document.body.classList.remove("flash");
+        },100);
+
     }
 
-    // POPUPS
-    if(fails % 6 === 0){
-        createPopup("Skill issue detected.");
+    // BLACKOUT
+    if(Math.random() < 0.08){
+
+        blackout.style.display = "block";
+
+        setTimeout(()=>{
+            blackout.style.display = "none";
+        },1000);
+
     }
 
-    if(fails % 12 === 0){
-        createPopup("Mouse disconnected.");
+    // CURSOR DISAPPEARS
+    if(fails > 30){
+
+        document.body.style.cursor = "none";
+
     }
 
-    if(fails % 20 === 0){
-        createPopup("Bro is struggling 💀");
+    // REVERSE MODE
+    if(fails === 40){
+
+        reverseMode = true;
+
+        popup("MOUSE CONTROLS REVERSED");
+
     }
 
-    // SCREEN ROTATE
-    if(fails === 25){
-        document.body.style.transform = "rotate(180deg)";
+    // SPAWN FAKE BUTTONS
+    if(fails === 50){
+
+        for(let i=0;i<8;i++){
+
+            spawnClone();
+
+        }
+
     }
 
-    // INVISIBLE BUTTON
-    if(fails === 35){
-        button.style.opacity = "0.2";
+    // MOVING OBSTACLES
+    if(fails === 65){
+
+        for(let i=0;i<5;i++){
+
+            createObstacle();
+
+        }
+
     }
 
-    // TELEPORT MODE
-    if(fails === 45 && !teleportSpam){
+    // REAL WIN PHASE
+    if(fails >= 100){
 
-        teleportSpam = true;
+        canWin = true;
 
-        setInterval(()=>{
-            if(!canActuallyWin){
-                moveButton();
-            }
-        },120);
-    }
+        btn.innerText = "HOLD TO WIN";
 
-    // LET PLAYER ACTUALLY WIN
-    if(fails >= 70){
+        btn.style.fontSize = "40px";
 
-        canActuallyWin = true;
+        btn.style.opacity = "1";
 
-        button.style.opacity = "1";
+        holdBar.style.display = "block";
 
-        button.style.fontSize = "35px";
+        popup("Okay. Final phase.");
 
-        button.style.padding = "25px 50px";
-
-        button.innerText = "FINAL CLICK";
-
-        clearEffects();
-
-        createPopup("Okay fine. You can win now.");
     }
 
 }
 
 
 // MOVE BUTTON
-function moveButton(){
+function moveBtn(){
 
-    const x = Math.random() * (window.innerWidth - 250);
-    const y = Math.random() * (window.innerHeight - 250);
+    let x = Math.random() * (window.innerWidth - 250);
+    let y = Math.random() * (window.innerHeight - 250);
 
-    button.style.left = x + "px";
-    button.style.top = y + "px";
+    if(reverseMode){
+
+        x = window.innerWidth - x - 200;
+        y = window.innerHeight - y - 100;
+
+    }
+
+    btn.style.left = x + "px";
+    btn.style.top = y + "px";
+
 }
 
 
 // POPUPS
-function createPopup(text){
+function popup(text){
 
-    const popup = document.createElement("div");
+    const p = document.createElement("div");
 
-    popup.classList.add("popup");
+    p.className = "popup";
 
-    popup.innerText = text;
+    p.innerText = text;
 
-    popup.style.left = Math.random() * (window.innerWidth - 250) + "px";
-    popup.style.top = Math.random() * (window.innerHeight - 150) + "px";
+    p.style.left =
+    Math.random() * (window.innerWidth - 300) + "px";
 
-    document.body.appendChild(popup);
+    p.style.top =
+    Math.random() * (window.innerHeight - 200) + "px";
+
+    document.body.appendChild(p);
 
     setTimeout(()=>{
-        popup.remove();
+        p.remove();
     },2000);
+
 }
 
 
-// FLASH EFFECT
-function flashScreen(){
+// JUMPSCARE
+function fakeWin(){
 
-    document.body.classList.add("flash");
+    jumpscare.style.display = "flex";
+
+    scream.play();
+
+    document.body.style.animation = "shake 0.04s infinite";
 
     setTimeout(()=>{
-        document.body.classList.remove("flash");
-    },100);
+
+        jumpscare.style.display = "none";
+
+        document.body.style.animation = "none";
+
+        popup("NOPE 😂");
+
+        moveBtn();
+
+    },2500);
 
 }
 
 
-// CLEAR EFFECTS WHEN WINNING ENABLED
-function clearEffects(){
+// CLONES
+function spawnClone(){
 
-    document.body.style.transform = "rotate(0deg)";
-    document.body.style.animation = "none";
+    const clone = document.createElement("button");
+
+    clone.className = "clone";
+
+    clone.innerText = "CLICK ME";
+
+    clone.style.left =
+    Math.random() * (window.innerWidth - 300) + "px";
+
+    clone.style.top =
+    Math.random() * (window.innerHeight - 200) + "px";
+
+    clone.onclick = ()=>{
+
+        alert("WRONG BUTTON 💀");
+
+        fail();
+
+    };
+
+    document.body.appendChild(clone);
 
 }
 
 
-// RANDOM TROLL ALERTS
+// CHEATER DETECTION
+function explodeCheater(){
+
+    for(let i=0;i<30;i++){
+
+        popup("CHEATER");
+
+    }
+
+    alert("AUTOCLICKER DETECTED 🤖");
+
+}
+
+
+// OBSTACLES
+function createObstacle(){
+
+    const obs = document.createElement("div");
+
+    obs.className = "obstacle";
+
+    obs.style.left =
+    Math.random() * (window.innerWidth - 150) + "px";
+
+    obs.style.top =
+    Math.random() * (window.innerHeight - 150) + "px";
+
+    document.body.appendChild(obs);
+
+    let dx = Math.random()*8-4;
+    let dy = Math.random()*8-4;
+
+    setInterval(()=>{
+
+        let x = obs.offsetLeft + dx;
+        let y = obs.offsetTop + dy;
+
+        if(x < 0 || x > window.innerWidth-120) dx *= -1;
+        if(y < 0 || y > window.innerHeight-120) dy *= -1;
+
+        obs.style.left = x + "px";
+        obs.style.top = y + "px";
+
+    },30);
+
+}
+
+
+// RANDOM TROLLS
 setInterval(()=>{
 
-    const msgs = [
-        "That was embarrassing.",
-        "You almost had it.",
-        "Even my grandma clicks faster.",
-        "Button escaped.",
-        "Try harder.",
-        "The button fears you."
-    ];
+    if(!canWin){
 
-    if(Math.random() < 0.35 && !canActuallyWin){
+        const msgs = [
 
-        const msg = msgs[Math.floor(Math.random()*msgs.length)];
+            "You almost had it.",
+            "Skill issue.",
+            "The button fears you.",
+            "Bro is LOCKED IN 💀",
+            "Even grandma clicks faster."
 
-        alert(msg);
+        ];
+
+        if(Math.random() < 0.4){
+
+            alert(msgs[Math.floor(Math.random()*msgs.length)]);
+
+        }
+
     }
 
-},12000);
-
-
-// WINDOW RESIZE TROLL
-window.addEventListener("resize",()=>{
-
-    if(!canActuallyWin){
-
-        moveButton();
-
-        alert("Nice try resizing.");
-    }
-
-});
+},14000);
 
 </script>
 
