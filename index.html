@@ -1,149 +1,302 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Impossible Button Game</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Totally Easy Game</title>
+
+<style>
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: white;
-      overflow: hidden;
-      text-align: center;
+        margin: 0;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+        background: black;
+        color: white;
+        user-select: none;
+        cursor: crosshair;
     }
 
     h1 {
-      margin-top: 40px;
-      font-size: 40px;
+        text-align: center;
+        margin-top: 20px;
+        font-size: 50px;
     }
 
-    p {
-      font-size: 20px;
+    #instruction {
+        text-align: center;
+        font-size: 22px;
+    }
+
+    #fails {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 25px;
+        color: red;
     }
 
     #gameArea {
-      position: relative;
-      width: 100vw;
-      height: 80vh;
+        width: 100vw;
+        height: 85vh;
+        position: relative;
     }
 
-    #btn {
-      position: absolute;
-      padding: 20px 40px;
-      font-size: 24px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      background: lime;
-      color: black;
-      transition: 0.1s;
+    #button {
+        position: absolute;
+        padding: 20px 40px;
+        font-size: 28px;
+        border: none;
+        border-radius: 15px;
+        background: lime;
+        color: black;
+        cursor: pointer;
+        transition: 0.05s;
+        box-shadow: 0 0 20px lime;
     }
 
-    #fakeMsg {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 50px;
-      display: none;
-      color: red;
+    #fakeWin {
+        position: absolute;
+        top: 40%;
+        width: 100%;
+        text-align: center;
+        font-size: 80px;
+        color: lime;
+        display: none;
     }
 
-    #counter {
-      font-size: 22px;
-      margin-top: 10px;
+    #jumpscare {
+        position: fixed;
+        inset: 0;
+        background: black;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        flex-direction: column;
     }
-  </style>
+
+    #jumpscare img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    #laughText {
+        position: absolute;
+        color: red;
+        font-size: 100px;
+        font-weight: bold;
+        text-shadow: 0 0 20px red;
+        animation: shake 0.1s infinite;
+    }
+
+    @keyframes shake {
+        0% { transform: translate(5px, 5px); }
+        25% { transform: translate(-5px, -5px); }
+        50% { transform: translate(5px, -5px); }
+        75% { transform: translate(-5px, 5px); }
+        100% { transform: translate(5px, 5px); }
+    }
+
+    .popup {
+        position: absolute;
+        background: white;
+        color: black;
+        padding: 15px;
+        border: 3px solid black;
+        border-radius: 10px;
+        font-size: 20px;
+        z-index: 5;
+    }
+
+</style>
 </head>
+
 <body>
 
-<h1>Easy Game!</h1>
-<p>Instruction: Just click the green button once.</p>
-<div id="counter">Fails: 0</div>
-
-<div id="gameArea">
-  <button id="btn">CLICK ME</button>
-  <div id="fakeMsg">TOO SLOW 😂</div>
+<h1>SUPER EASY GAME</h1>
+<div id="instruction">
+    Just click the green button ONE time.
 </div>
 
+<div id="fails">Fails: 0</div>
+
+<div id="gameArea">
+    <button id="button">CLICK ME</button>
+    <div id="fakeWin">YOU DID IT!</div>
+</div>
+
+<div id="jumpscare">
+    <img src="https://i.imgur.com/8Q2QK0G.jpeg">
+    <div id="laughText">HAHAHAHA</div>
+</div>
+
+<audio id="scream">
+    <source src="https://www.myinstants.com/media/sounds/movie_1.mp3" type="audio/mp3">
+</audio>
+
 <script>
-  const btn = document.getElementById("btn");
-  const gameArea = document.getElementById("gameArea");
-  const fakeMsg = document.getElementById("fakeMsg");
-  const counter = document.getElementById("counter");
 
-  let fails = 0;
+const button = document.getElementById("button");
+const gameArea = document.getElementById("gameArea");
+const fakeWin = document.getElementById("fakeWin");
+const failsText = document.getElementById("fails");
+const jumpscare = document.getElementById("jumpscare");
+const scream = document.getElementById("scream");
 
-  // Random start position
-  moveButton();
+let fails = 0;
+let impossibleMode = false;
 
-  // Button escapes mouse
-  document.addEventListener("mousemove", (e) => {
-    const rect = btn.getBoundingClientRect();
+moveButton();
 
-    const dx = e.clientX - (rect.left + rect.width / 2);
-    const dy = e.clientY - (rect.top + rect.height / 2);
+// BUTTON RUNS AWAY
+document.addEventListener("mousemove", (e) => {
+
+    const rect = button.getBoundingClientRect();
+
+    const bx = rect.left + rect.width / 2;
+    const by = rect.top + rect.height / 2;
+
+    const dx = e.clientX - bx;
+    const dy = e.clientY - by;
 
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (distance < 120) {
-      moveButton();
-      fail();
+    if (distance < 150) {
+        moveButton();
+        fail();
     }
-  });
+});
 
-  // If somehow clicked
-  btn.addEventListener("click", () => {
-    btn.innerText = "WAIT...";
+// IF BUTTON CLICKED
+button.addEventListener("click", () => {
+
+    fakeWin.style.display = "block";
 
     setTimeout(() => {
-      alert("Connection lost.");
-      moveButton();
-      btn.innerText = "CLICK ME";
-      fail();
-    }, 300);
-  });
+        fakeWin.style.display = "none";
 
-  // Random annoying popups
-  setInterval(() => {
-    if (Math.random() < 0.3) {
-      alert("Are you sure you know how to click?");
-    }
-  }, 8000);
+        jumpscare.style.display = "flex";
+        scream.play();
 
-  function moveButton() {
-    const x = Math.random() * (window.innerWidth - 200);
-    const y = Math.random() * (window.innerHeight - 200);
+        // SHAKE SCREEN
+        document.body.style.animation = "shake 0.1s infinite";
 
-    btn.style.left = x + "px";
-    btn.style.top = y + "px";
-  }
+        setTimeout(() => {
+            alert("YOU REALLY THOUGHT YOU WON 💀");
+            location.reload();
+        }, 3000);
 
-  function fail() {
-    fails++;
-    counter.innerText = "Fails: " + fails;
-
-    fakeMsg.style.display = "block";
-
-    setTimeout(() => {
-      fakeMsg.style.display = "none";
     }, 500);
+});
 
-    // Make button smaller over time
-    const currentSize = parseFloat(window.getComputedStyle(btn).fontSize);
+function moveButton() {
+
+    const x = Math.random() * (window.innerWidth - 250);
+    const y = Math.random() * (window.innerHeight - 250);
+
+    button.style.left = x + "px";
+    button.style.top = y + "px";
+}
+
+// FAIL SYSTEM
+function fail() {
+
+    fails++;
+    failsText.innerText = "Fails: " + fails;
+
+    // BUTTON SHRINKS
+    let currentSize = parseFloat(window.getComputedStyle(button).fontSize);
 
     if (currentSize > 8) {
-      btn.style.fontSize = (currentSize - 1) + "px";
-      btn.style.padding = "15px 25px";
+        button.style.fontSize = (currentSize - 0.5) + "px";
     }
 
-    // Occasionally teleport instantly
-    if (fails % 5 === 0) {
-      setInterval(moveButton, 100);
+    // RANDOM FAKE ERROR POPUPS
+    if (fails % 7 === 0) {
+        createPopup("Skill issue detected.");
     }
-  }
+
+    if (fails % 13 === 0) {
+        createPopup("Mouse calibration failed.");
+    }
+
+    if (fails % 20 === 0) {
+        createPopup("Button escaped.");
+    }
+
+    // SCREEN FLIPS
+    if (fails === 25) {
+        document.body.style.transform = "rotate(180deg)";
+    }
+
+    // INVISIBLE BUTTON
+    if (fails === 35) {
+        button.style.opacity = "0.2";
+    }
+
+    // BUTTON TELEPORT SPAM
+    if (fails === 45 && !impossibleMode) {
+
+        impossibleMode = true;
+
+        setInterval(() => {
+            moveButton();
+        }, 120);
+    }
+
+    // FAKE VIRUS MODE
+    if (fails === 60) {
+
+        for (let i = 0; i < 20; i++) {
+            createPopup("VIRUS DETECTED");
+        }
+    }
+}
+
+// RANDOM POPUPS
+function createPopup(text) {
+
+    const popup = document.createElement("div");
+
+    popup.classList.add("popup");
+    popup.innerText = text;
+
+    popup.style.left = Math.random() * (window.innerWidth - 200) + "px";
+    popup.style.top = Math.random() * (window.innerHeight - 100) + "px";
+
+    document.body.appendChild(popup);
+
+    setTimeout(() => {
+        popup.remove();
+    }, 2000);
+}
+
+// RANDOM TROLL ALERTS
+setInterval(() => {
+
+    const messages = [
+        "You almost had it.",
+        "That was embarrassing.",
+        "Even a grandma clicks faster.",
+        "Button says no.",
+        "Try harder.",
+        "Bro is struggling 💀"
+    ];
+
+    const msg = messages[Math.floor(Math.random() * messages.length)];
+
+    if (Math.random() < 0.4) {
+        alert(msg);
+    }
+
+}, 12000);
+
+// WINDOW RESIZE TROLL
+window.addEventListener("resize", () => {
+    moveButton();
+    alert("Nice try resizing.");
+});
+
 </script>
 
 </body>
